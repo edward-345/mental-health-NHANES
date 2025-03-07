@@ -1,0 +1,210 @@
+---
+title: "STA302 Project"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+```{r}
+library(NHANES)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+library(knitr) 
+```
+
+```{r}
+# Step 1: Filter the dataset for participants older than 18
+filtered_NHANES <- NHANES[NHANES$Age > 18, ]
+print(paste("Number of rows after filtering age > 18:", nrow(filtered_NHANES)))
+
+# Step 2: Check for missing values in each selected variable
+variables <- c("BMI", "PhysActiveDays", "HHIncome", "AlcoholYear", "AgeRegMarij", "SleepHrsNight")
+
+# Loop through each variable and count the number of missing values
+for (var in variables) {
+  num_missing <- sum(is.na(filtered_NHANES[[var]]))
+  print(paste("Number of missing values in", var, ":", num_missing))
+}
+
+# Step 3: Remove rows with missing values in any of the selected variables
+subset_NHANES <- na.omit(filtered_NHANES[, variables])
+print(paste("Number of rows after removing missing values:", nrow(subset_NHANES)))
+```
+
+```{r}
+# Cleaning DaysMentHlthBad variable for participants older than 18
+clean_DaysMentHlthBad <- na.omit(NHANES$DaysMentHlthBad[NHANES$Age > 18])
+
+# Summary statistics for DaysMentHlthBad
+summary(clean_DaysMentHlthBad)
+
+# Visualization for DaysMentHlthBad
+hist(clean_DaysMentHlthBad, main = "Histogram of Days Mental Health Was Not Good", xlab = "Days", col = "grey")
+```
+
+```{r}
+# Cleaning BMI variable for participants older than 18
+clean_BMI <- na.omit(NHANES$BMI[NHANES$Age > 18])
+
+# Summary statistics for BMI
+summary(clean_BMI)
+
+# Visualization for BMI
+hist(clean_BMI, main = "Histogram of BMI", xlab = "BMI", col = "grey")
+```
+
+```{r}
+# Cleaning PhysActiveDays variable (Number of days physically active in the past 30 days) for participants older than 18
+clean_PhysActiveDays <- na.omit(NHANES$PhysActiveDays[NHANES$Age > 18])
+
+# Summary statistics for PhysActiveDays
+summary(clean_PhysActiveDays)
+
+# Visualization for PhysActiveDays
+hist(clean_PhysActiveDays, main = "Histogram of Physically Active Days", xlab = "Number of Days", col = "grey")
+```
+
+```{r}
+# Cleaning HHIncome variable (Household income) for participants older than 18
+clean_HHIncome <- na.omit(NHANES$HHIncome[NHANES$Age > 18])
+
+# Summary statistics for HHIncome
+summary(clean_HHIncome)
+
+# Visualization for HHIncome
+barplot(table(clean_HHIncome), main = "Barplot of Household Income", xlab = "Household Income Levels", col = "grey")
+```
+
+```{r}
+# Cleaning AlcoholYear variable (Estimated number of days over the past year that participant drank alcoholic beverages) for participants older than 18
+clean_AlcoholYear <- na.omit(NHANES$AlcoholYear[NHANES$Age > 18])
+
+# Summary statistics for AlcoholYear
+summary(clean_AlcoholYear)
+
+# Visualization for AlcoholYear
+hist(clean_AlcoholYear, main = "Histogram of Alcohol Consumption Days in Past Year", xlab = "Days", col = "grey")
+```
+
+```{r}
+# Cleaning SleepHrsNight variable (Hours of sleep per night) for participants older than 18
+clean_SleepHrsNight <- na.omit(NHANES$SleepHrsNight[NHANES$Age > 18])
+
+# Summary statistics for SleepHrsNight
+summary(clean_SleepHrsNight)
+
+# Visualization for SleepHrsNight
+hist(clean_SleepHrsNight, main = "Histogram of Hours of Sleep per Night", xlab = "Hours of Sleep", col = "grey")
+```
+
+```{r}
+# Cleaning AgeRegMarij variable (Age first started regular marijuana use) for participants older than 18
+clean_AgeRegMarij <- na.omit(NHANES$AgeRegMarij[NHANES$Age > 18])
+
+# Convert to numeric if needed
+if (!is.numeric(clean_AgeRegMarij)) {
+  clean_AgeRegMarij <- as.numeric(as.character(clean_AgeRegMarij))
+}
+
+# Summary statistics for AgeRegMarij
+summary(clean_AgeRegMarij)
+
+# Visualization for AgeRegMarij
+hist(clean_AgeRegMarij, main = "Histogram of Age First Started Regular Marijuana Use", xlab = "Age", col = "grey")
+```
+
+```{r}
+# Subset NHANES dataset to include participants older than 18 and selected variables
+subset_NHANES <- na.omit(NHANES[NHANES$Age > 0, c("BMI", "PhysActiveDays", "HHIncome", "AlcoholYear", "AgeRegMarij", "SleepHrsNight")])
+
+# Pairwise scatter plots of selected numerical variables
+pairs(~BMI + PhysActiveDays + AlcoholYear + AgeRegMarij + SleepHrsNight, data = subset_NHANES, 
+      main = "Pairwise Scatter Plots of Selected Variables", col = "blue")
+```
+
+```{r}
+# Fit a multiple regression model using only complete cases for participants older than 18
+model_data <- na.omit(NHANES[NHANES$Age > 18, c("DaysMentHlthBad", "BMI", "PhysActiveDays", "HHIncome", "AlcoholYear", "AgeRegMarij", "SleepHrsNight")])
+model <- lm(DaysMentHlthBad ~ BMI + PhysActiveDays + HHIncome + AlcoholYear + AgeRegMarij + SleepHrsNight, data = model_data)
+
+# Summary of the model
+summary(model)
+```
+
+```{r}
+# Extract fitted values and residuals from the model
+fitted_values <- fitted(model)
+residuals <- resid(model)
+
+# Create a data frame for plotting
+plot_data <- data.frame(fitted_values = fitted_values, residuals = residuals)
+
+# Residual vs Fitted Values plot
+res_fitted_plot <- ggplot(data = plot_data, aes(x = fitted_values, y = residuals)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_hline(yintercept = 0, color = "red") +
+  labs(title = "Residuals vs Fitted Values", x = "Fitted Values", y = "Residuals")
+
+# Normal Q-Q plot
+qq_plot <- ggplot(data = data.frame(residuals = residuals), aes(sample = residuals)) +
+  stat_qq() +
+  stat_qq_line(color = "red") +
+  labs(title = "Normal Q-Q Plot", x = "Theoretical Quantiles", y = "Sample Quantiles")
+
+# Arrange the plots in a grid
+grid.arrange(res_fitted_plot, qq_plot, ncol = 2)
+```
+
+```{r}
+# Create a data frame for plotting
+plot_data <- data.frame(fitted_values = fitted_values, residuals = residuals)
+
+# Residual vs BMI
+res_BMI_plot <- ggplot(model_data, aes(x = BMI, y = residuals)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_hline(yintercept = 0, color = "red") +
+  labs(title = "Residuals vs BMI", x = "BMI", y = "Residuals")
+
+# Residuals vs PhysActiveDays
+res_phys_active_plot <- ggplot(model_data, aes(x = PhysActiveDays, y = residuals)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_hline(yintercept = 0, color = "red") +
+  labs(title = "Residuals vs Physically Active Days", x = "Physically Active Days", y = "Residuals")
+
+# Residuals vs AlcoholYear
+res_alcohol_plot <- ggplot(model_data, aes(x = AlcoholYear, y = residuals)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_hline(yintercept = 0, color = "red") +
+  labs(title = "Residuals vs Alcohol Year", x = "Alcohol Consumption Days (Past Year)", y = "Residuals")
+
+# Residuals vs AgeRegMarij
+res_age_marij_plot <- ggplot(model_data, aes(x = AgeRegMarij, y = residuals)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_hline(yintercept = 0, color = "red") +
+  labs(title = "Residuals vs Age Regular Marijuana Use", x = "Age Started Regular Marijuana Use", y = "Residuals")
+
+# Residuals vs SleepHrsNight
+res_sleep_plot <- ggplot(model_data, aes(x = SleepHrsNight, y = residuals)) +
+  geom_point(color = "blue", alpha = 0.5) +
+  geom_hline(yintercept = 0, color = "red") +
+  labs(title = "Residuals vs Hours of Sleep per Night", x = "Hours of Sleep per Night", y = "Residuals")
+
+# Arrange all residual plots (excluding HHIncome) in a grid
+grid.arrange(res_BMI_plot, res_phys_active_plot, res_alcohol_plot, res_age_marij_plot, res_sleep_plot, ncol = 2)
+```
+
+```{r}
+# Residuals vs HHIncome (Boxplot)
+res_income_box_plot <- ggplot(model_data, aes(x = as.factor(HHIncome), y = residuals)) +
+  geom_boxplot(fill = "lightblue", color = "darkblue", alpha = 0.7) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+  theme_minimal() +
+  ggtitle("Residuals vs Household Income (Boxplot)") +
+  xlab("Household Income Levels") +
+  ylab("Residuals") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+
+# Display the box plot for HHIncome
+print(res_income_box_plot)
+```

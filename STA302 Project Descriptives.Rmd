@@ -1,0 +1,188 @@
+---
+title: "STA302 Project Descriptive Stats"
+author: "Edward J. Lee"
+date: "2024-10-02"
+output: pdf_document
+---
+
+```{r}
+#
+library(knitr) 
+library(ggplot2)
+library(mosaic)
+library(dplyr)
+library(NHANES)
+```
+
+```{r}
+#Filter the dataset for only particpants 18 or older
+filtered_NHANES <- NHANES[NHANES$Age >= 18, ]
+attach(filtered_NHANES)
+```
+
+```{r}
+#CLEANING RESPONSE VARIABLE (DaysMntlHealthBad)
+clean_MH <- na.omit(DaysMentHlthBad)
+summary(clean_MH)
+#Frequency table
+table_MH <- addmargins(table(clean_MH))
+print(table_MH)
+#Proportion table
+prop_MH <- tally(~ clean_MH,
+                 format = "percent",
+                 margin = TRUE,
+                 data = filtered_NHANES)
+print(prop_MH)
+#Barplot
+graph_MH <- barplot(table(clean_MH),
+                    main = "Bar Graph of Reported Bad Mental Health Days",
+                    ylab = "Frequency")
+```
+
+```{r}
+#Cleaning DaysMntlHealthBad but participants reported at least 1
+oneplus_MH <- clean_MH[clean_MH > 0]
+summary(oneplus_MH)
+#Frequency table
+table_oneMH <- addmargins(table(oneplus_MH))
+print(table_oneMH)
+#proportion table
+prop_oneMH <- tally(~ oneplus_MH,
+                 format = "percent",
+                 margin = TRUE,
+                 data = filtered_NHANES)
+print(prop_oneMH)
+#Barplot
+graph_oneMH <- barplot(table(oneplus_MH),
+                    main = "Bar Graph of at least 1 Bad Mental Health Days",
+                    ylab = "Frequency")
+```
+
+```{r}
+#CLEANING PREDICTOR 1 (BMI)
+clean_BMI <- na.omit(BMI)
+summary(clean_BMI)
+#Frequency table
+table_BMI <- addmargins(table(clean_BMI))
+#Histogram
+hist_BMI <- hist(clean_BMI,
+                 main = "Histogram of BMI",
+                 ylab = "Frequency")
+```
+
+```{r}
+#CLEANING PREDICTOR 2 (HHIncome)
+clean_HHI <- na.omit(HHIncome)
+summary(clean_HHI)
+#frequency table
+table_HHI <- addmargins(table(clean_HHI))
+print(table_HHI)
+#Proportion table 
+prop_HHI <- tally(~ clean_HHI,
+                  format = "percent",
+                  margin = TRUE,
+                  data = filtered_NHANES)
+print(prop_HHI)
+#Barplot
+graph_HHI <- barplot(table(clean_HHI),
+                     main = "Barplot of Household Income",
+                     ylab = "Frequency")
+```
+
+```{r}
+#CLEANING PREDICTOR 3 (PhysActiveDays)
+clean_phys <- na.omit(PhysActiveDays)
+summary(clean_phys)
+#frequency table
+table_phys <- addmargins(table(clean_phys))
+print(table_phys)
+#proportion table
+prop_phys <- tally(~ clean_phys,
+                   format = "percent",
+                   margin = TRUE,
+                   data = filtered_NHANES)
+print(prop_phys)
+#graph
+graph_phys <- barplot(table(clean_phys),
+                      main = "Barplot of Days in a week Physically Active",
+                      ylab = "Frequency")
+#Pie
+pie_phys <- pie(table(clean_phys),
+                main = "Pie Chart of Days in a week Physically Active")
+```
+
+```{r}
+#CLEANING PREDICTOR 4 (SleepHrsNight)
+clean_sleep <- na.omit(SleepHrsNight)
+summary(clean_sleep)
+#frequency
+table_sleep <- addmargins(table(clean_sleep))
+print(table_sleep)
+#proportion
+prop_sleep <- tally(~ clean_sleep,
+                    format = "percent",
+                    margin = TRUE,
+                    data = filtered_NHANES)
+print(prop_sleep)
+#barplot
+graph_sleep <- barplot(table(clean_sleep),
+                       main = "Barplot of Hours of Sleep per 24hrs",
+                       ylab = "Frequency")
+```
+
+```{r}
+#CLEANING PREDICTOR 5 (AlcoholYear)
+clean_alc <- na.omit(AlcoholYear)
+summary(clean_alc)
+#frequency
+table_alc <- addmargins(table(clean_alc))
+print(table_alc)
+#proportion
+prop_alc <- tally(~ clean_alc,
+                    format = "percent",
+                    margin = TRUE,
+                    data = filtered_NHANES)
+print(prop_alc)
+#barplot
+graph_alc <- barplot(table(clean_alc),
+                       main = "Barplot of Days in a Year Consumed Alcohol",
+                       ylab = "Frequency")
+```
+
+```{r}
+#Cleaning AlcoholYear but participants reported at least 1
+oneplus_alc <- clean_alc[clean_alc > 0]
+summary(oneplus_alc)
+#Frequency table
+table_onealc <- addmargins(table(oneplus_alc))
+print(table_onealc)
+#proportion table
+prop_onealc <- tally(~ oneplus_alc,
+                    format = "percent",
+                    margin = TRUE,
+                    data = filtered_NHANES)
+print(prop_onealc)
+#barplot
+graph_onealc <- barplot(table(oneplus_alc),
+                     main = "Barplot of 1 or More Days in a Year Consumed Alcohol",
+                     ylab = "Frequency")
+```
+
+```{r}
+#CLEANING PREDICTOR 6 (AgeRegMarij)
+clean_AM <- na.omit(AgeRegMarij)
+summary(clean_AM)
+#frequency
+table_AM <- addmargins(table(clean_AM))
+print(table_AM)
+#proportion
+prop_AM <- tally(~ clean_AM,
+                  format = "percent",
+                  margin = TRUE,
+                  data = filtered_NHANES)
+print(prop_AM)
+#barplot
+graph_AM <- barplot(table(clean_AM),
+                     main = "Barplot of Age when Regular Marijuna Use Started",
+                     ylab = "Frequency")
+```
